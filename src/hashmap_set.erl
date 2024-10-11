@@ -1,18 +1,18 @@
 -module(hashmap_set).
 
--export([]).
+-export([new/0, add_element/2]).
 
 -include("hashmap_set.hrl").
 
--opaque set(Key) ::
-    #map{storage :: array:array({Key, Value}), length :: integer()}.
+-opaque set(Value) ::
+    #set{storage :: array:array(Value), length :: integer()}.
 
 -export_type([set/1]).
 
 new() ->
-    #map{storage = array:new(?INIT_CAPACITY), length = 0}.
+    #set{storage = array:new(?INIT_CAPACITY), length = 0}.
 
-add_element(Value, #map{storage = Array, length = Length}) ->
+add_element(Value, #set{storage = Array, length = Length}) ->
     ResizedArray =
         case Length / array:size(Array) > ?LOAD_FACTOR of
             true ->
@@ -22,23 +22,21 @@ add_element(Value, #map{storage = Array, length = Length}) ->
         end,
     case put_element(Value, ResizedArray) of
         {changed_value, ReturnedArray} ->
-            #map{storage = ReturnedArray, length = Length};
+            #set{storage = ReturnedArray, length = Length};
         {new_value, ReturnedArray} ->
-            #map{storage = ReturnedArray, length = Length + 1}
+            #set{storage = ReturnedArray, length = Length + 1}
     end.
 
-put_element(Value, #map{storage = Array, length = Length}) ->
+put_element(Value, Array) ->
   Position = calc_hash(Value, Array),
   case array:get(Position, Array) of
     undefined ->
-      array:set(Position, Value, Array),
-      {new_value, Array};
+      {new_value, array:set(Position, Value, Array)};
     OldValue when OldValue == Value ->
       {changed_value, Array};
     OldValue when OldValue /= Value->
       FreePosition = find_free_position(Position, Array),
-      array:set(FreePosition, Value, Array),
-      {new_value, Array}
+      {new_value, array:set(FreePosition, Value, Array)}
   end.
 
 find_free_position(Position, Array) ->
@@ -56,5 +54,20 @@ grow_array(Array) ->
     NewArray = array:new(NewSize),
     copy_array(Array, NewArray).
 
-calc_hash(Key, Array) ->
-    erlang:phash2(Key, array:size(Array)).
+copy_array(Array, NewArray) ->
+    Size = array:size(Array),
+    copy_array(Array, NewArray, 0, Size).
+
+copy_array(Array, NewArray, Index, Size) when Index =< Size ->
+    case array:get(Index, Array) of
+        undefined ->
+            copy_array(Array, NewArray, Index + 1, Size);
+        Value ->
+            NewArray = put_element(Value, NewArray),
+            copy_array(Array, NewArray, Index + 1, Size)
+    end;
+copy_array(_, NewArray, _, _) ->
+    NewArray.
+
+calc_hash(Value, Array) ->
+    erlang:phash2(Value, array:size(Array)).
