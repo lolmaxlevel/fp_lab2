@@ -1,6 +1,6 @@
 -module(hashmap_set).
 
--export([new/0, add_element/2, remove_element/2, get_element/2, is_set/1, filter/2]).
+-export([new/0, add_element/2, remove_element/2, get_element/2, is_set/1, filter/2, from_list/1, to_list/1]).
 
 -include("hashmap_set.hrl").
 
@@ -17,6 +17,24 @@ is_set(#set{}) ->
 
 is_set(_) ->
   false.
+
+from_list(List) ->
+  lists:foldl(fun add_element/2, new(), List).
+
+to_list(#set{storage = Array, length = _}) ->
+  to_list(Array, 0, array:size(Array), []).
+
+to_list(Array, Index, Size, Acc) when Index < Size ->
+  case array:get(Index, Array) of
+    undefined ->
+      to_list(Array, Index + 1, Size, Acc);
+    Value ->
+      to_list(Array, Index + 1, Size, [Value | Acc])
+  end;
+
+to_list(_, _, _, Acc) ->
+  Acc.
+
 
 add_element(Value, #set{storage = Array, length = Length}) ->
   ResizedArray =
@@ -83,6 +101,7 @@ filter(Pred, OldArray, Index, Size, NewSet) when Index < Size ->
 
 filter(_, _, _, _, NewSet) ->
   NewSet.
+
 
 put_element(Value, Array) ->
   Position = calc_hash(Value, Array),

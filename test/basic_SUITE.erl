@@ -5,9 +5,9 @@
 -include_lib("stdlib/include/assert.hrl").
 
 -export([all/0]).
--export([grow_test/1, add_element_test/1, remove_test/1, filter_test/1]).
+-export([grow_test/1, add_element_test/1, remove_test/1, filter_test/1, to_list_test/1, from_list_test/1]).
 all() ->
-  [grow_test, add_element_test, remove_test, filter_test].
+  [grow_test, add_element_test, remove_test, filter_test, to_list_test, from_list_test].
 
 % add few elements to test adding
 add_element_test(_) ->
@@ -54,19 +54,17 @@ filter_test(_) ->
   ?assertEqual(hashmap_set:get_element(100, FilteredSet), not_found),
   ?assertEqual(hashmap_set:get_element(101, FilteredSet), found).
 
-%%%% Common test requires Config argument in test cases
-%%fib_data_tests(_) ->
-%%    fib_regular_case(4613732).
-%%
-%%dist_power_data_tests(_) ->
-%%    dist_power_regular_case(9183).
-%%
-%%dist_power_regular_case(Expected) ->
-%%    ?assertEqual(Expected, distinct_powers_map:count_distinct_terms()),
-%%    ?assertEqual(Expected, distinct_powers:count_distinct_terms()).
-%%
-%%fib_regular_case(Expected) ->
-%%    ?assertEqual(Expected, fib_even_module:sum_even_fib()),
-%%    ?assertEqual(Expected, fib_even_stream:sum_even_fib()),
-%%    ?assertEqual(Expected, fib_even_monolith_tail:sum_even_fib()),
-%%    ?assertEqual(Expected, fib_even_monolith_recursion:sum_even_fib()).
+to_list_test(_) ->
+  Set = add_1k_elements(hashmap_set:new(), 0),
+  List = hashmap_set:to_list(Set),
+  ?assertEqual(length(List), 1000),
+  ?assertEqual(lists:sort(List), lists:seq(0, 999)).
+
+from_list_test(_) ->
+  List = lists:seq(0, 999),
+  Set = hashmap_set:from_list(List),
+  ?assertEqual(Set#set.length, 1000),
+  ?assertEqual(hashmap_set:get_element(1, Set), found),
+  ?assertEqual(hashmap_set:get_element(555, Set), found),
+  ?assertEqual(hashmap_set:get_element(321, Set), found).
+
