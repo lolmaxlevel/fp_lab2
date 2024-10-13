@@ -5,15 +5,32 @@
 -include_lib("stdlib/include/assert.hrl").
 
 -export([all/0]).
--export([grow_test/1]).
+-export([grow_test/1, add_element_test/1, remove_test/1]).
 all() ->
-  [grow_test].
+  [grow_test, add_element_test, remove_test].
 
+% add few elements to test adding
+add_element_test(_) ->
+  Set = hashmap_set:new(),
+  Set1 = hashmap_set:add_element(1, Set),
+  Set2 = hashmap_set:add_element(2, Set1),
+  Set3 = hashmap_set:add_element(3, Set2),
+  ?assertEqual(Set3#set.length, 3).
+
+
+% add a lot of elements to test growing
 grow_test(_) ->
   #set{storage = Array, length = Length} = add_1k_elements(hashmap_set:new(), 0),
   ?assertEqual(Length, 1000),
   ?assert(array:size(Array) >= 1000).
 
+% add 1000 elements and remove 3 of them to test removing
+remove_test(_) ->
+  Set = add_1k_elements(hashmap_set:new(), 0),
+  Set1 = hashmap_set:remove_element(1, Set),
+  Set2 = hashmap_set:remove_element(2, Set1),
+  Set3 = hashmap_set:remove_element(3, Set2),
+  ?assertEqual(Set3#set.length, 997).
 
 add_1k_elements(Set, Count) when Count < 1000 ->
   NewSet = hashmap_set:add_element(Count, Set),
