@@ -5,9 +5,11 @@
 -include_lib("stdlib/include/assert.hrl").
 
 -export([all/0]).
--export([grow_test/1, add_element_test/1, remove_test/1, filter_test/1, to_list_test/1, from_list_test/1, map_test/1, foldl_test/1, foldr_test/1]).
+-export([grow_test/1, add_element_test/1, remove_test/1, filter_test/1, to_list_test/1,
+  from_list_test/1, map_test/1, foldl_test/1, foldr_test/1, is_associative_test/1, has_identity_element_test/1]).
 all() ->
-  [grow_test, add_element_test, remove_test, filter_test, to_list_test, from_list_test, map_test, foldl_test, foldr_test].
+  [grow_test, add_element_test, remove_test, filter_test, to_list_test, from_list_test,
+    map_test, foldl_test, foldr_test, is_associative_test, has_identity_element_test].
 
 % add few elements to test adding
 add_element_test(_) ->
@@ -96,3 +98,17 @@ foldr_test(_) ->
   ?assertEqual(Sum, 499500),
   ?assertEqual(Multiplied, 0),
   ?assertEqual(Multiplied2, 2).
+
+is_associative_test(_) ->
+  A = hashmap_set:add_element(1, hashmap_set:new()),
+  B = hashmap_set:add_element(2, hashmap_set:new()),
+  AB = hashmap_set:add_element(2, A),
+  ABC1 = hashmap_set:add_element(3, AB),
+  BC = hashmap_set:add_element(3, B),
+  ABC2 = hashmap_set:add_element(1, BC),
+  ?assertEqual(ABC1, ABC2).
+
+has_identity_element_test(_) ->
+  EmptySet = hashmap_set:new(),
+  A = hashmap_set:add_element(1, EmptySet),
+  ?assertEqual(A, hashmap_set:add_element(1, hashmap_set:new())).
