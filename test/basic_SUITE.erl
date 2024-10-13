@@ -5,9 +5,9 @@
 -include_lib("stdlib/include/assert.hrl").
 
 -export([all/0]).
--export([grow_test/1, add_element_test/1, remove_test/1, filter_test/1, to_list_test/1, from_list_test/1]).
+-export([grow_test/1, add_element_test/1, remove_test/1, filter_test/1, to_list_test/1, from_list_test/1, map_test/1]).
 all() ->
-  [grow_test, add_element_test, remove_test, filter_test, to_list_test, from_list_test].
+  [grow_test, add_element_test, remove_test, filter_test, to_list_test, from_list_test, map_test].
 
 % add few elements to test adding
 add_element_test(_) ->
@@ -68,3 +68,11 @@ from_list_test(_) ->
   ?assertEqual(hashmap_set:get_element(555, Set), found),
   ?assertEqual(hashmap_set:get_element(321, Set), found).
 
+map_test(_) ->
+  Set = add_1k_elements(hashmap_set:new(), 0),
+  NewSet = hashmap_set:map(fun(X) -> X + 1 end, Set),
+  NewSetMultiple = hashmap_set:map(fun(X) -> X * 2 end, NewSet),
+  ?assertEqual(NewSet#set.length, 1000),
+  ?assertEqual(NewSetMultiple#set.length, 1000),
+  ?assertEqual(lists:sort(hashmap_set:to_list(NewSet)), lists:seq(1, 1000)),
+  ?assertEqual(lists:sort(hashmap_set:to_list(NewSetMultiple)), [X || X <- lists:seq(1, 2000), X rem 2 =:= 0]).

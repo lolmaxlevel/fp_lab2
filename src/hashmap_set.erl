@@ -1,6 +1,6 @@
 -module(hashmap_set).
 
--export([new/0, add_element/2, remove_element/2, get_element/2, is_set/1, filter/2, from_list/1, to_list/1]).
+-export([new/0, add_element/2, remove_element/2, get_element/2, is_set/1, filter/2, from_list/1, to_list/1, map/2]).
 
 -include("hashmap_set.hrl").
 
@@ -102,6 +102,21 @@ filter(Pred, OldArray, Index, Size, NewSet) when Index < Size ->
 filter(_, _, _, _, NewSet) ->
   NewSet.
 
+map(Function, #set{storage = Array, length = _}) ->
+  map(Function, Array, 0, array:size(Array), new()).
+
+map(Function, OldArray, Index, Size, NewSet) when Index < Size ->
+  case array:get(Index, OldArray) of
+    undefined ->
+      map(Function, OldArray, Index + 1, Size, NewSet);
+    Value ->
+      NewValue = Function(Value),
+      NewSet1 = add_element(NewValue, NewSet),
+      map(Function, OldArray, Index + 1, Size, NewSet1)
+  end;
+
+map(_, _, _, _, NewSet) ->
+  NewSet.
 
 put_element(Value, Array) ->
   Position = calc_hash(Value, Array),
