@@ -1,6 +1,6 @@
 -module(hashmap_set).
 
--export([new/0, add_element/2, remove_element/2, get_element/2]).
+-export([new/0, add_element/2, remove_element/2, get_element/2, is_set/1, filter/2]).
 
 -include("hashmap_set.hrl").
 
@@ -11,6 +11,12 @@
 
 new() ->
   #set{storage = array:new(?INIT_CAPACITY), length = 0}.
+
+is_set(#set{}) ->
+  true;
+
+is_set(_) ->
+  false.
 
 add_element(Value, #set{storage = Array, length = Length}) ->
   ResizedArray =
@@ -43,8 +49,40 @@ get_element(Value, #set{storage = Array, length = _}) ->
     undefined ->
       not_found;
     Value ->
-      found
+      found;
+    _ -> % collision
+      find_element(Value, Array, Position)
   end.
+
+find_element(Value, Array, Position) ->
+  Size = array:size(Array),
+  WrappedPosition = Position rem Size,
+  case array:get(WrappedPosition, Array) of
+    undefined ->
+      not_found;
+    Value ->
+      found;
+    _ ->
+      find_element(Value, Array, WrappedPosition + 1)
+  end.
+
+filter(Pred, #set{storage = Array, length = _}) ->
+  filter(Pred, Array, 0, array:size(Array), new()).
+
+filter(Pred, OldArray, Index, Size, NewSet) when Index < Size ->
+  PredResult = Pred(array:get(Index, OldArray)),
+  case array:get(Index, OldArray) of
+    undefined ->
+      filter(Pred, OldArray, Index + 1, Size, NewSet);
+    Value when PredResult ->
+      NewSet1 = add_element(Value, NewSet),
+      filter(Pred, OldArray, Index + 1, Size, NewSet1);
+    _ ->
+      filter(Pred, OldArray, Index + 1, Size, NewSet)
+  end;
+
+filter(_, _, _, _, NewSet) ->
+  NewSet.
 
 put_element(Value, Array) ->
   Position = calc_hash(Value, Array),
@@ -83,7 +121,6 @@ copy_array(Array, NewArray, Index, Size) when Index < Size ->
       copy_array(Array, NewArray, Index + 1, Size);
     Value ->
       {_, NewArray1} = put_element(Value, NewArray),
-      io:format("NewArray1: ~p~n", [NewArray1]),
       copy_array(Array, NewArray1, Index + 1, Size)
   end;
 

@@ -5,9 +5,9 @@
 -include_lib("stdlib/include/assert.hrl").
 
 -export([all/0]).
--export([grow_test/1, add_element_test/1, remove_test/1]).
+-export([grow_test/1, add_element_test/1, remove_test/1, filter_test/1]).
 all() ->
-  [grow_test, add_element_test, remove_test].
+  [grow_test, add_element_test, remove_test, filter_test].
 
 % add few elements to test adding
 add_element_test(_) ->
@@ -45,6 +45,14 @@ add_1k_elements(Set, Count) when Count < 1000 ->
 add_1k_elements(Set, _) ->
   Set.
 
+filter_test(_) ->
+  Set = add_1k_elements(hashmap_set:new(), 0),
+  FilteredSet = hashmap_set:filter(fun(X) -> X > 100 end, Set),
+  ?assertEqual(FilteredSet#set.length, 899),
+  ?assertEqual(hashmap_set:get_element(1, FilteredSet), not_found),
+  ?assertEqual(hashmap_set:get_element(52, FilteredSet), not_found),
+  ?assertEqual(hashmap_set:get_element(100, FilteredSet), not_found),
+  ?assertEqual(hashmap_set:get_element(101, FilteredSet), found).
 
 %%%% Common test requires Config argument in test cases
 %%fib_data_tests(_) ->
