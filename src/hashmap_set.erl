@@ -1,6 +1,6 @@
 -module(hashmap_set).
 
--export([new/0, add_element/2, remove_element/2, get_element/2, is_set/1, filter/2, from_list/1, to_list/1, map/2, foldl/3, foldr/3]).
+-export([new/0, add_element/2, remove_element/2, get_element/2, is_set/1, filter/2, from_list/1, to_list/1, map/2, foldl/3, foldr/3, merge/2]).
 
 -include("hashmap_set.hrl").
 
@@ -37,18 +37,23 @@ to_list(_, _, _, Acc) ->
 
 
 add_element(Value, #set{storage = Array, length = Length}) ->
-  ResizedArray =
-    case Length / array:size(Array) > ?LOAD_FACTOR of
-      true ->
-        grow_array(Array);
-      false ->
-        Array
-    end,
-  case put_element(Value, ResizedArray) of
-    {changed_value, ReturnedArray} ->
-      #set{storage = ReturnedArray, length = Length};
-    {new_value, ReturnedArray} ->
-      #set{storage = ReturnedArray, length = Length + 1}
+  case get_element(Value, #set{storage = Array, length = Length}) of
+    found ->
+      #set{storage = Array, length = Length}; % элемент уже существует, не добавляем
+    not_found ->
+      ResizedArray =
+        case Length / array:size(Array) > ?LOAD_FACTOR of
+          true ->
+            grow_array(Array);
+          false ->
+            Array
+        end,
+      case put_element(Value, ResizedArray) of
+        {changed_value, ReturnedArray} ->
+          #set{storage = ReturnedArray, length = Length};
+        {new_value, ReturnedArray} ->
+          #set{storage = ReturnedArray, length = Length + 1}
+      end
   end.
 
 remove_element(Value, #set{storage = Array, length = Length}) ->
@@ -125,6 +130,9 @@ foldl(Function, Acc, #set{storage = Array, length = _}) ->
 foldr(Function, Acc, #set{storage = Array, length = _}) ->
   List = to_list(Array, 0, array:size(Array), []),
   lists:foldr(Function, Acc, List).
+
+merge(Set1, Set2) ->
+  foldl(fun add_element/2, Set1, Set2).
 
 put_element(Value, Array) ->
   Position = calc_hash(Value, Array),
