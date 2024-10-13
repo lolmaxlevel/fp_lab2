@@ -1,6 +1,6 @@
 -module(hashmap_set).
 
--export([new/0, add_element/2, remove_element/2, get_element/2, is_set/1, filter/2, from_list/1, to_list/1, map/2]).
+-export([new/0, add_element/2, remove_element/2, get_element/2, is_set/1, filter/2, from_list/1, to_list/1, map/2, foldl/3, foldr/3]).
 
 -include("hashmap_set.hrl").
 
@@ -117,6 +117,14 @@ map(Function, OldArray, Index, Size, NewSet) when Index < Size ->
 
 map(_, _, _, _, NewSet) ->
   NewSet.
+
+foldl(Function, Acc, #set{storage = Array, length = _}) ->
+  List = to_list(Array, 0, array:size(Array), []),
+  lists:foldl(Function, Acc, List).
+
+foldr(Function, Acc, #set{storage = Array, length = _}) ->
+  List = to_list(Array, 0, array:size(Array), []),
+  lists:foldr(Function, Acc, List).
 
 put_element(Value, Array) ->
   Position = calc_hash(Value, Array),
