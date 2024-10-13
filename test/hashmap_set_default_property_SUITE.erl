@@ -33,6 +33,7 @@ remove_element_property_test(_) ->
 size_property_test(_) ->
   ?FORALL(Elements, list(int()),
     begin
-      Set = lists:foldl(fun(E, Acc) -> hashmap_set:add_element(E, Acc) end, hashmap_set:new(), Elements),
+      Set = lists:foldl(fun(E, Acc) -> hashmap_set:add_element(E, Acc) end,
+        hashmap_set:new(), Elements),
       ?assertEqual(length(lists:usort(Elements)), Set#set.length)
     end).

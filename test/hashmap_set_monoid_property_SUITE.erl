@@ -7,7 +7,8 @@
 
 -define(SET_SIZE, 1000).
 
--export([all/0, identity_property_test/1, associativity_property_test/1, idempotence_property_test/1]).
+-export([all/0, identity_property_test/1, associativity_property_test/1,
+  idempotence_property_test/1]).
 
 all() ->
   [identity_property_test, associativity_property_test, idempotence_property_test].

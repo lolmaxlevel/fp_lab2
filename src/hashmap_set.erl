@@ -1,6 +1,7 @@
 -module(hashmap_set).
 
--export([new/0, add_element/2, remove_element/2, get_element/2, is_set/1, filter/2, from_list/1, to_list/1, map/2, foldl/3, foldr/3, merge/2]).
+-export([new/0, add_element/2, remove_element/2, get_element/2,
+  is_set/1, filter/2, from_list/1, to_list/1, map/2, foldl/3, foldr/3, merge/2]).
 
 -include("hashmap_set.hrl").
 
