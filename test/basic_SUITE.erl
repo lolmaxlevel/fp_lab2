@@ -15,7 +15,9 @@ add_element_test(_) ->
   Set1 = hashmap_set:add_element(1, Set),
   Set2 = hashmap_set:add_element(2, Set1),
   Set3 = hashmap_set:add_element(3, Set2),
-  ?assertEqual(Set3#set.length, 3).
+  ?assertEqual(Set3#set.length, 3),
+  ?assertEqual(hashmap_set:get_element(1, Set3), found),
+  ?assertEqual(hashmap_set:get_element(2, Set3), found).
 
 
 % add a lot of elements to test growing
@@ -30,7 +32,11 @@ remove_test(_) ->
   Set1 = hashmap_set:remove_element(1, Set),
   Set2 = hashmap_set:remove_element(2, Set1),
   Set3 = hashmap_set:remove_element(3, Set2),
-  ?assertEqual(Set3#set.length, 997).
+  ?assertEqual(Set3#set.length, 997),
+  ?assertEqual(hashmap_set:get_element(1, Set3), not_found),
+  ?assertEqual(hashmap_set:get_element(2, Set3), not_found),
+  ?assertEqual(hashmap_set:get_element(3, Set3), not_found),
+  ?assertEqual(hashmap_set:get_element(4, Set3), found).
 
 add_1k_elements(Set, Count) when Count < 1000 ->
   NewSet = hashmap_set:add_element(Count, Set),

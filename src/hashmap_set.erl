@@ -1,6 +1,6 @@
 -module(hashmap_set).
 
--export([new/0, add_element/2, remove_element/2]).
+-export([new/0, add_element/2, remove_element/2, get_element/2]).
 
 -include("hashmap_set.hrl").
 
@@ -35,6 +35,15 @@ remove_element(Value, #set{storage = Array, length = Length}) ->
     Value ->
       NewArray = array:set(Position, undefined, Array),
       #set{storage = NewArray, length = Length - 1}
+  end.
+
+get_element(Value, #set{storage = Array, length = _}) ->
+  Position = calc_hash(Value, Array),
+  case array:get(Position, Array) of
+    undefined ->
+      not_found;
+    Value ->
+      found
   end.
 
 put_element(Value, Array) ->
