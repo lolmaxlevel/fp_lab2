@@ -50,6 +50,101 @@ Set имеет такой интерфейс:
 Функции **filter** и **map** были реализованы без приведения к листу, fold'ы наоборот, реализованы через приведение к
 листу (для разнообразия).
 
+Функции привидения к листу и получение из листа:
+```erlang
+from_list(List) ->
+  lists:foldl(fun add_element/2, new(), List).
+
+to_list(#set{storage = Array, length = _}) ->
+  to_list(Array, 0, array:size(Array), []).
+
+to_list(Array, Index, Size, Acc) when Index < Size ->
+  case array:get(Index, Array) of
+    undefined ->
+      to_list(Array, Index + 1, Size, Acc);
+    Value ->
+      to_list(Array, Index + 1, Size, [Value | Acc])
+  end;
+
+to_list(_, _, _, Acc) ->
+  Acc.
+```
+
+Добавление Элемента:
+```erlang
+add_element(Value, #set{storage = Array, length = Length}) ->
+  case get_element(Value, #set{storage = Array, length = Length}) of
+    found ->
+      #set{storage = Array, length = Length}; % элемент уже существует, не добавляем
+    not_found ->
+      ResizedArray =
+        case Length / array:size(Array) > ?LOAD_FACTOR of
+          true ->
+            grow_array(Array);
+          false ->
+            Array
+        end,
+      case put_element(Value, ResizedArray) of
+        {changed_value, ReturnedArray} ->
+          #set{storage = ReturnedArray, length = Length};
+        {new_value, ReturnedArray} ->
+          #set{storage = ReturnedArray, length = Length + 1}
+      end
+  end.
+```
+
+Удаление элемента:
+```erlang
+remove_element(Value, #set{storage = Array, length = Length}) ->
+  Position = calc_hash(Value, Array),
+  case array:get(Position, Array) of
+    undefined ->
+      #set{storage = Array, length = Length};
+    Value ->
+      NewArray = array:set(Position, undefined, Array),
+      #set{storage = NewArray, length = Length - 1}
+  end.
+```
+
+Фильтр:
+```erlang
+filter(Pred, #set{storage = Array, length = _}) ->
+  filter(Pred, Array, 0, array:size(Array), new()).
+
+filter(Pred, OldArray, Index, Size, NewSet) when Index < Size ->
+  PredResult = Pred(array:get(Index, OldArray)),
+  case array:get(Index, OldArray) of
+    undefined ->
+      filter(Pred, OldArray, Index + 1, Size, NewSet);
+    Value when PredResult ->
+      NewSet1 = add_element(Value, NewSet),
+      filter(Pred, OldArray, Index + 1, Size, NewSet1);
+    _ ->
+      filter(Pred, OldArray, Index + 1, Size, NewSet)
+  end;
+
+filter(_, _, _, _, NewSet) ->
+  NewSet.
+```
+
+map:
+```erlang
+map(Function, #set{storage = Array, length = _}) ->
+  map(Function, Array, 0, array:size(Array), new()).
+
+map(Function, OldArray, Index, Size, NewSet) when Index < Size ->
+  case array:get(Index, OldArray) of
+    undefined ->
+      map(Function, OldArray, Index + 1, Size, NewSet);
+    Value ->
+      NewValue = Function(Value),
+      NewSet1 = add_element(NewValue, NewSet),
+      map(Function, OldArray, Index + 1, Size, NewSet1)
+  end;
+
+map(_, _, _, _, NewSet) ->
+  NewSet.
+```
 Конкретные функции можно посмотреть в файле [hashmap_set.erl](src%2Fhashmap_set.erl).
 
 ## Тестирование
