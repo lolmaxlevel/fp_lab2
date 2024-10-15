@@ -70,7 +70,7 @@ to_list(_, _, _, Acc) ->
   Acc.
 ```
 
-Добавление Элемента:
+Добавление элемента:
 ```erlang
 add_element(Value, #set{storage = Array, length = Length}) ->
   case get_element(Value, #set{storage = Array, length = Length}) of
@@ -145,7 +145,7 @@ map(Function, OldArray, Index, Size, NewSet) when Index < Size ->
 map(_, _, _, _, NewSet) ->
   NewSet.
 ```
-Конкретные функции можно посмотреть в файле [hashmap_set.erl](src%2Fhashmap_set.erl).
+Fold, merge и внутренние функции можно посмотреть в файле [hashmap_set.erl](src%2Fhashmap_set.erl).
 
 ## Тестирование
 
