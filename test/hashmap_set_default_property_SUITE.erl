@@ -14,7 +14,6 @@ all() ->
   [add_element_property_test, remove_element_property_test, size_property_test].
 
 
-%% API
 add_element_property_test(_) ->
   ?FORALL({Set, Element}, {set(), int()},
     begin
